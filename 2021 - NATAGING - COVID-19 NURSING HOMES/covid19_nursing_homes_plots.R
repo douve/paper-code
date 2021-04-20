@@ -10,14 +10,7 @@
 # Exces of mortality -----------------------------------------------------------
 
 ## exitus pob vs residents
-vlines = data.frame(vals = c(min(resi.anl$Date_first_test,na.rm=T),
-                             median(resi.anl$Date_first_test,na.rm=T)+4,
-                             median(resi.anl$Date_first_test,na.rm=T)+18),
-                    label = c('First PCR','Date of intervention','14 days post intervention'))
-vlines$dif = c(0,diff(vlines$vals)) %>% as.numeric %>% cumsum
-vlines$week = lubridate::week(vlines$vals)
-
-xitus_long$week = exitus_long$Data_exitus %>% lubridate::week()
+exitus_long$week = exitus_long$Data_exitus %>% lubridate::week()
 
 data = exitus_long %>% filter(Data_exitus>=start.date) %>% filter(Data_exitus<=end.date) %>%
   group_by(week) %>% summarise(pob =sum(Poblacio),
@@ -68,8 +61,8 @@ bp = ggplot(bpdat %>% filter(variable!='Poblacio') %>% mutate(variable=droplevel
 
 
 # Heatmap -------------------------------------------------------
-data = resi.anl %>% 
-  select(Codi,Desc_residencia,
+data = dataset %>% 
+  select(Codi,
          louvain = louvain2,
          median_Age,
          Perc_Dones,
@@ -158,9 +151,9 @@ pheatmap(aux,
 
 
 # Variable importance at each cluster -----------------------
-varImportance = lapply(1:n_distinct(resi.anl$louvain2),function(l){
+varImportance = lapply(1:n_distinct(data$louvain2),function(l){
   
-  data =resi.anl %>% mutate(cluster = ifelse(louvain2==l,1,0) %>% to_dummy())
+  data =dataset %>% mutate(cluster = ifelse(louvain2==l,1,0) %>% to_dummy())
   rf = randomForest::randomForest(cluster~median_Age+Perc_Dones+median_comorbi+Residents_alfa+
                                     Perc_PCC+Perc_MACA+N_residents_actius+
                                     SNQ12+Perc_leave+renta_llar+N_pob+incidencia,
@@ -218,12 +211,7 @@ jet.colors = colorRampPalette(c(rgb(75,145,35,max=255),
                                     rgb(200,30,125,max=255)
 ))
 
-resi.anl = pacients.anl %>% group_by(Codi) %>%
-  summarise(N=n(),
-            Perc_Exitus_covid_pre = perc(sum(Exitus_pre_post=='Pre' & type_exitus=='Covid'),N)
-  ) %>% left_join(resi.anl)
-
-data = resi.anl %>% 
+data = dataset %>% 
   select(louvain=louvain2,
          Perc_Exitus,Perc_Exitus_covid) %>% na.omit %>%
   group_by(louvain) %>% reshape2::melt()
@@ -241,11 +229,11 @@ aux = data %>% group_by(louvain,variable) %>%
          louvain = factor(louvain))
 data = data %>% left_join(aux)
 data$title = factor(data$variable,
-                    levels = c('Perc_Exitus','Perc_Exitus_covid','Perc_Exitus_covid_pre'),
-                    labels = c('% exitus','% exitus covid-19','% exitus covid-19 at baseline'))
+                    levels = c('Perc_Exitus','Perc_Exitus_covid'),
+                    labels = c('% exitus','% exitus covid-19'))
 aux$title = factor(aux$variable,
-                    levels = c('Perc_Exitus','Perc_Exitus_covid','Perc_Exitus_covid_pre'),
-                    labels = c('% exitus','% exitus covid-19','% exitus covid-19 at baseline'))
+                    levels = c('Perc_Exitus','Perc_Exitus_covid'),
+                    labels = c('% exitus','% exitus covid-19'))
 
 
 ggplot(data, aes(x=louvain, y=value,fill=intensity)) + 
@@ -261,7 +249,7 @@ ggplot(data, aes(x=louvain, y=value,fill=intensity)) +
 
 
 # Barplot all variables included in clusterization -----------------------------------------------
-data = resi.anl %>% 
+data = dataset %>% 
   select(louvain=louvain2,median_Age,median_comorbi,
          Perc_Dones,Perc_PCC,Perc_MACA,
          Residents_alfa,incidencia,renta_llar,N_pob,

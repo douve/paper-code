@@ -2,8 +2,8 @@
 
 # Nursing homes clusterization ----------------------------------------------------------------
 
-data = resi.anl %>% 
-  dplyr::select(Codi,Desc_residencia,DAP,Perc_Males=Perc_Dones,
+data = dataset %>% 
+  dplyr::select(Codi,Perc_Males=Perc_Dones,
                 N_active_residents=N_residents_actius,
                 median_Age,Perc_leave,n_comorb = median_comorbi,dependent_residents=Residents_alfa,
                 CCP = Perc_PCC,ACP = Perc_MACA,Population_density=N_pob,household_income=renta_llar,
@@ -77,7 +77,7 @@ dev.off()
 
 ## All-cause exitus: ----
 # Univariate:
-vars = resi.anl %>% 
+vars = dataset %>% 
   dplyr::select(median_Age,
                 median_comorbi,
                 Perc_Dones,
@@ -98,8 +98,7 @@ out_zeroinflpoiss = lapply(1:length(vars),function(i){
   cat(vars[i],'\n')
   
   formula = as.formula(paste0('Exitus~',vars[i],'+offset(log(N_residents))|1'))
-  # model = glm(formula,data=resi.anl,family=poisson(link='log'))
-  model = zeroinfl(formula, data=resi.anl)
+  model = zeroinfl(formula, data=dataset)
   cmodel = model %>% summary
   or = cbind.data.frame(exp(cmodel$coefficients$count[,1]),exp(confint(model))[1:2,],
                         cmodel$coefficients$count[,4])
@@ -107,7 +106,6 @@ out_zeroinflpoiss = lapply(1:length(vars),function(i){
   or = or[-1,]
   names(or) = c('OR','Lower','Upper','P-value')
   out = cbind.data.frame(Variable = vars[i],or)
-  # out = rbind.data.frame(out,NA)
   
   return(out)
 }) %>% bind_rows()
@@ -115,7 +113,7 @@ out_zeroinflpoiss = lapply(1:length(vars),function(i){
 
 # Multivariate:
 m = as.formula(Exitus~Perc_Dones+Perc_PCC+incidencia+N_residents_actius+SNQ12+offset(log(N_residents))|1)
-mod1 <- zeroinfl(m, data=resi.anl)
+mod1 <- zeroinfl(m, data=dataset)
 smod1 = summary(mod1)
 
 or = cbind.data.frame(exp(smod1$coefficients$count[,1]),exp(confint(mod1))[1:6,],
@@ -134,7 +132,7 @@ allcause_output = left_join(out_zeroinflpoiss,out)
 
 ## covid-19 related exitus: ----
 # Univariate:
-vars = resi.anl %>% 
+vars = dataset %>% 
   dplyr::select(median_Age,
                 median_comorbi,
                 Perc_Dones,
@@ -155,8 +153,7 @@ out_zeroinflpoiss = lapply(1:length(vars),function(i){
   cat(vars[i],'\n')
   
   formula = as.formula(paste0('Exitus_covid~',vars[i],'+offset(log(N_residents))|1'))
-  # model = glm(formula,data=resi.anl,family=poisson(link='log'))
-  model = zeroinfl(formula, data=resi.anl)
+  model = zeroinfl(formula, data=dataset)
   cmodel = model %>% summary
   or = cbind.data.frame(exp(cmodel$coefficients$count[,1]),exp(confint(model))[1:2,],
                         cmodel$coefficients$count[,4])
@@ -164,14 +161,13 @@ out_zeroinflpoiss = lapply(1:length(vars),function(i){
   or = or[-1,]
   names(or) = c('OR','Lower','Upper','P-value')
   out = cbind.data.frame(Variable = vars[i],or)
-  # out = rbind.data.frame(out,NA)
   
   return(out)
 }) %>% bind_rows()
 
 # Multivariate:
 m = as.formula(Exitus_covid~Perc_PCC+incidencia+SNQ12+offset(log(N_residents))|1)
-mod1 <- zeroinfl(m, data=resi.anl)
+mod1 <- zeroinfl(m, data=dataset)
 smod1 = summary(mod1)
 
 or = cbind.data.frame(exp(smod1$coefficients$count[,1]),exp(confint(mod1))[1:4,],
