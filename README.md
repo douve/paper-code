@@ -2,8 +2,5 @@
 
 This repository contains the data and R code that was used in analyses in my published papers and other research.
 
-- @article{PPR:PPR236183,
-	title = {Risk factors for mortality of residents in nursing homes with Covid-19: a retrospective cohort study},
-	author = {Suñer C and Ouchi D and Mas MÀ and Alarcon RL and Mesquida MM and Negredo E and Prat N and Bonet-Simó JM and Miralles R and Colet MT and Puigvendrelló JV and Henríquez N and Marks M and Ara J and Mitjà O},
-	doi = {10.1101/2020.11.09.20228171}
-} 
+**2021 - NATAGING - COVID-19 nursing homes**
+- Clara Suñer, Dan Ouchi, Oriol Mitjà (2021) - A retrospective cohort study of risk factors for mortality among nursing homes with Covid-19 medRxiv 2020.11.09.20228171; doi: https://doi.org/10.1101/2020.11.09.20228171
